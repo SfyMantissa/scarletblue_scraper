@@ -1,10 +1,20 @@
+#!/usr/bin/env python3
+
+"""This script scrapes the website https://scarletblue.com.au/ for data
+and outputs the result in the .xls file.
+"""
+
 import xlwt
 import scrapy
 from scrapy.crawler import CrawlerProcess
+
 from cloudflare_handler import CloudflareWebdriver
 
-class scarletblue(scrapy.Spider):
-    
+class Scarletblue(scrapy.Spider):
+    """Class defines all the attributes and methods required to scrape
+    data from the given website and out the results in the .xls file.
+    """
+
     name = "scarletblue"
     url = "https://scarletblue.com.au/"
     driver = CloudflareWebdriver()
@@ -21,9 +31,8 @@ class scarletblue(scrapy.Spider):
     areas_and_cities = []
     row_counter = 1
 
-
     def start_requests(self):
-       
+        """Standard scrapy method to start scraping."""
         self.sheet.write(0, 0, "Area")
         self.sheet.write(0, 1, "City")
         self.sheet.write(0, 2, "Name")
@@ -31,7 +40,6 @@ class scarletblue(scrapy.Spider):
         self.sheet.write(0, 4, "Phone")
         self.sheet.write(0, 5, "E-mail")
         self.sheet.write(0, 6, "Social")
-
         yield scrapy.Request(url=self.url, 
                             callback=self.parse_areas_for_cities,
                             cookies=self.cookies,
@@ -39,6 +47,9 @@ class scarletblue(scrapy.Spider):
                             )
 
     def parse_areas_for_cities(self, response):
+        """Get a list of cities in an area and produce further
+        requests.
+        """
         area_list = response.css("div.hide::attr(data-citymenutarget)")\
                                                                 .extract()
         for area in area_list:
@@ -57,6 +68,9 @@ class scarletblue(scrapy.Spider):
                                     )
 
     def parse_cities_for_escorts(self, response):
+        """Get a list of escorts for a city and produce further
+        requests.
+        """
         area = response.meta['area']
         escort_links = response.css("div.profile-image-cities:not(.signup)>\
                                     a:not(.favgirl):not(.signup)\
@@ -70,6 +84,9 @@ class scarletblue(scrapy.Spider):
                                 )
     
     def parse_escort_for_data(self, response):
+        """Scrape all the required data from escort's profile and
+        output the result in the .xls file.
+        """
         area = response.meta['area']
         name = response.css("div.col-lg-12>header>h1::text")\
                                                     .extract_first().strip()
@@ -93,9 +110,6 @@ class scarletblue(scrapy.Spider):
             social = response.css("ul.list-group.list-inline>li>div>p>\
                                   a:not(a[data-toggle='modal']):not(.email)\
                                             ::attr(href)").extract()
-        #print(self.cookies)
-        #print(self.headers)
-        
         self.sheet.write(self.row_counter, 0, area)
         self.sheet.write(self.row_counter, 1, location)
         self.sheet.write(self.row_counter, 2, name)
@@ -106,6 +120,11 @@ class scarletblue(scrapy.Spider):
         self.row_counter += 1
         self.book.save("scarletblue.xls")
 
-process = CrawlerProcess()
-process.crawl(scarletblue)
-process.start()
+def main():
+    """The function called upon script execution."""
+    process = CrawlerProcess()
+    process.crawl(Scarletblue)
+    process.start()
+
+if __name__ == '__main__':
+    main()
