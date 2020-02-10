@@ -11,8 +11,8 @@ class title_contains_not(object):
     """A custom wait.until() condtion class."""
 
     def __init__(self, title):
-        """Defines the self.title string to be looked for in a string
-        webdriver.title string.
+        """Defines the self.title substring to be looked for in the string
+        webdriver.title.
         """
         self.title = title
 
@@ -21,7 +21,7 @@ class title_contains_not(object):
         return self.title not in driver.title
 
 class CloudflareWebdriver(webdriver.Firefox):
-    """Class defines methods required to open a window with CAPTCHA and
+    """The class defines methods required to open a window with CAPTCHA and
     fetch Cloudflare session cookies and Firefox user-agent after a
     valid CAPTCHA is submitted to store them in Python dictionaries.
     """
@@ -51,7 +51,7 @@ class CloudflareWebdriver(webdriver.Firefox):
         get_captcha_field.click()
 
     def _wait(self, time_=600):
-        """Wait until document title no longer contains string
+        """Wait until document title no longer contains the string
         'Cloudflare'.
         """
         wait = WebDriverWait(self, time_)

@@ -6,7 +6,8 @@ and outputs the result in the .xls file.
 
 import xlwt
 import scrapy
-from scrapy.crawler import CrawlerProcess
+from scrapy.crawler import CrawlerRunner
+from twisted.internet import reactor
 
 from cloudflare_handler import CloudflareWebdriver
 
@@ -32,7 +33,7 @@ class Scarletblue(scrapy.Spider):
     row_counter = 1
 
     def start_requests(self):
-        """Standard scrapy method to start scraping."""
+        """Standard Scrapy method to start scraping."""
         self.sheet.write(0, 0, "Area")
         self.sheet.write(0, 1, "City")
         self.sheet.write(0, 2, "Name")
@@ -68,7 +69,7 @@ class Scarletblue(scrapy.Spider):
                                     )
 
     def parse_cities_for_escorts(self, response):
-        """Get a list of escorts for a city and produce further
+        """Get a list of persons for a city and produce further
         requests.
         """
         area = response.meta['area']
@@ -84,7 +85,7 @@ class Scarletblue(scrapy.Spider):
                                 )
     
     def parse_escort_for_data(self, response):
-        """Scrape all the required data from escort's profile and
+        """Scrape all the required data from the profile and
         output the result in the .xls file.
         """
         area = response.meta['area']
@@ -122,9 +123,13 @@ class Scarletblue(scrapy.Spider):
 
 def main():
     """The function called upon script execution."""
-    process = CrawlerProcess()
-    process.crawl(Scarletblue)
-    process.start()
+    runner = CrawlerRunner()
+    print("Fetching data...")
+    d = runner.crawl(Scarletblue)
+    d.addBoth(lambda _: reactor.stop())
+    reactor.run()
+    print("Data written to scarletblue.xls")
+    print("Done!")
 
 if __name__ == '__main__':
     main()
